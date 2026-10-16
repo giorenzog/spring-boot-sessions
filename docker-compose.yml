@@ -1,0 +1,6 @@
+services:
+  session-seven:
+    build:
+      context: ./session-seven
+    ports:
+      - "8087:8080"
