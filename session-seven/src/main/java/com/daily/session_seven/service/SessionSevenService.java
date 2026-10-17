@@ -1,5 +1,6 @@
 package com.daily.session_seven.service;
 
+import com.daily.session_seven.config.PaginationProperties;
 import com.daily.session_seven.dto.PersonPatchRequest;
 import com.daily.session_seven.dto.PersonRequest;
 import com.daily.session_seven.dto.PersonResponse;
@@ -7,6 +8,7 @@ import com.daily.session_seven.entity.Person;
 import com.daily.session_seven.exception.PersonNotFoundException;
 import com.daily.session_seven.repository.SessionSevenRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class SessionSevenService {
 
     private final SessionSevenRepository sessionSevenRepository;
+    private final PaginationProperties paginationProperties;
 
-    public SessionSevenService(SessionSevenRepository sessionSevenRepository) {
+    public SessionSevenService(SessionSevenRepository sessionSevenRepository, PaginationProperties paginationProperties) {
         this.sessionSevenRepository = sessionSevenRepository;
+        this.paginationProperties = paginationProperties;
     }
 
     @Transactional
@@ -34,7 +38,10 @@ public class SessionSevenService {
     }
 
     public Page<PersonResponse> findAll(Pageable pageable){
-        return sessionSevenRepository.findAll(pageable).map(this::toResponse);
+        int size = Math.min(pageable.getPageSize(), paginationProperties.getMaxSize());
+        Pageable capped = PageRequest.of(pageable.getPageNumber(), size, pageable.getSort());
+
+        return sessionSevenRepository.findAll(capped).map(this::toResponse);
     }
 
     @Transactional
