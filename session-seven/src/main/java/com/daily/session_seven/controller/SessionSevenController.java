@@ -3,6 +3,7 @@ package com.daily.session_seven.controller;
 import com.daily.session_seven.dto.PersonPatchRequest;
 import com.daily.session_seven.dto.PersonRequest;
 import com.daily.session_seven.dto.PersonResponse;
+import com.daily.session_seven.dto.PersonSearchCriteria;
 import com.daily.session_seven.service.SessionSevenService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,10 +47,8 @@ public class SessionSevenController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PersonResponse>> findAll(Pageable pageable){
-        Page<PersonResponse> personResponsePage = sessionSevenService.findAll(pageable);
-
-        return ResponseEntity.ok(personResponsePage);
+    public ResponseEntity<Page<PersonResponse>> findAll(@Valid PersonSearchCriteria criteria, Pageable pageable){
+        return ResponseEntity.ok(sessionSevenService.search(criteria, pageable));
     }
 
     @PutMapping("/{id}")

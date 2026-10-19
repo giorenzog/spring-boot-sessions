@@ -4,14 +4,19 @@ import com.daily.session_seven.config.PaginationProperties;
 import com.daily.session_seven.dto.PersonPatchRequest;
 import com.daily.session_seven.dto.PersonRequest;
 import com.daily.session_seven.dto.PersonResponse;
+import com.daily.session_seven.dto.PersonSearchCriteria;
 import com.daily.session_seven.entity.Person;
 import com.daily.session_seven.exception.PersonNotFoundException;
+import com.daily.session_seven.repository.PersonSpecifications;
 import com.daily.session_seven.repository.SessionSevenRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 
 @Service
@@ -37,11 +42,18 @@ public class SessionSevenService {
         return toResponse(sessionSevenRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id)));
     }
 
-    public Page<PersonResponse> findAll(Pageable pageable){
+    public Page<PersonResponse> search(PersonSearchCriteria criteria, Pageable pageable){
+        LocalDate today = LocalDate.now();
+
+        Specification<Person> spec = Specification
+                .where(PersonSpecifications.nameContains(criteria.getName()))
+                .and(PersonSpecifications.ageAtLeast(criteria.getMinAge(), today))
+                .and(PersonSpecifications.ageAtMost(criteria.getMaxAge(), today));
+
         int size = Math.min(pageable.getPageSize(), paginationProperties.getMaxSize());
         Pageable capped = PageRequest.of(pageable.getPageNumber(), size, pageable.getSort());
 
-        return sessionSevenRepository.findAll(capped).map(this::toResponse);
+        return sessionSevenRepository.findAll(spec, capped).map(this::toResponse);
     }
 
     @Transactional
